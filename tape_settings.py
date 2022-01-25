@@ -128,14 +128,3 @@ class GripPipelineReflectiveTape:
         detector = cv2.SimpleBlobDetector_create(params)
         return detector.detect(input)
 
-
-data = GripPipelineReflectiveTape()
-pic = cv2.imread("NearLaunchpad5ft4in.png")
-cv2.imshow("source", pic)
-
-processed = data.process(pic)
-all_together = 0
-cv2.drawKeypoints(pic, processed, all_together)
-
-cv2.imshow("blobs", all_together)
-cv2.waitKey(0)
