@@ -2,22 +2,24 @@ import cv2
 import numpy
 import math
 from enum import Enum, auto
-import ball_team_settings as settings
+import general_settings as settings
+from general_settings import Team
 
-class Team(Enum):
-    RED = auto()
-    BLUE = auto()
+#created to fix the absence of this kind of enum used in the auto generated GRIP code
+class BlurType(Enum):
+    Box_Blur = auto()
+    Gaussian_Blur = auto()
+    Median_Filter = auto()
+
 
 
 class BallProcessing:
-    
-    #asks for team in the main so that it can recognize either blue or red balls
-    def __init__(self, team : Team):
-        """initializes all values to presets or None if need to be set
-        """
 
-        #imports the threshold values from ball_team_settings.py module
-        #(needed for indentifying either blue or red balls)
+    # asks for team in the main so that it can recognize either blue or red balls
+    def __init__(self, team: Team):
+
+        # imports the threshold values from ball_team_settings.py module
+        # (needed for indentifying either blue or red balls)
         if team == Team.RED:
             self.__hsv_threshold_hue = settings.RedTeamBall().threshold_hue
             self.__hsv_threshold_saturation = settings.RedTeamBall().threshold_saturation
@@ -28,14 +30,12 @@ class BallProcessing:
             self.__hsv_threshold_saturation = settings.BlueTeamBall().threshold_saturation
             self.__hsv_threshold_value = settings.BlueTeamBall().threshold_value
 
-
         # initialization of values for the image processing
         # (it shouldn't be necessary to modify these for tuning the camera)
         self.__blur_type = BlurType.Box_Blur
         self.__blur_radius = 32.432432432432435
 
         self.blur_output = None
-
 
         self.__hsv_threshold_input = self.blur_output
         self.hsv_threshold_output = None
@@ -66,31 +66,31 @@ class BallProcessing:
     # operates the ball processing and returns the final result
     # without modifying the argument
     def process(self, source0):
-        """
-        Runs the pipeline and sets all outputs to new values.
-        """
+
         # Step Blur0:
         self.__blur_input = source0
-        (self.blur_output) = self.__blur(self.__blur_input, self.__blur_type, self.__blur_radius)
+        (self.blur_output) = self.__blur(
+            self.__blur_input, self.__blur_type, self.__blur_radius)
 
         # Step HSV_Threshold0:
         self.__hsv_threshold_input = self.blur_output
-        (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input, self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
+        (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input,
+                                                           self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
 
         # Step CV_dilate0:
         self.__cv_dilate_src = self.hsv_threshold_output
-        (self.cv_dilate_output) = self.__cv_dilate(self.__cv_dilate_src, self.__cv_dilate_kernel, self.__cv_dilate_anchor, self.__cv_dilate_iterations, self.__cv_dilate_bordertype, self.__cv_dilate_bordervalue)
+        (self.cv_dilate_output) = self.__cv_dilate(self.__cv_dilate_src, self.__cv_dilate_kernel,
+                                                   self.__cv_dilate_anchor, self.__cv_dilate_iterations, self.__cv_dilate_bordertype, self.__cv_dilate_bordervalue)
 
         # Step CV_erode0:
         self.__cv_erode_src = self.cv_dilate_output
-        (self.cv_erode_output) = self.__cv_erode(self.__cv_erode_src, self.__cv_erode_kernel, self.__cv_erode_anchor, self.__cv_erode_iterations, self.__cv_erode_bordertype, self.__cv_erode_bordervalue)
+        (self.cv_erode_output) = self.__cv_erode(self.__cv_erode_src, self.__cv_erode_kernel,
+                                                 self.__cv_erode_anchor, self.__cv_erode_iterations, self.__cv_erode_bordertype, self.__cv_erode_bordervalue)
         return self.cv_erode_output
 
         # Step Find_Contours0: (not used)
         #self.__find_contours_input = self.cv_erode_output
         #(self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
-        
-
 
     @staticmethod
     def __blur(src, type, radius):
@@ -140,8 +140,8 @@ class BallProcessing:
         Returns:
             A numpy.ndarray after dilation.
         """
-        return cv2.dilate(src, kernel, anchor, iterations = (int) (iterations +0.5),
-                            borderType = border_type, borderValue = border_value)
+        return cv2.dilate(src, kernel, anchor, iterations=(int)(iterations + 0.5),
+                          borderType=border_type, borderValue=border_value)
 
     @staticmethod
     def __cv_erode(src, kernel, anchor, iterations, border_type, border_value):
@@ -155,8 +155,8 @@ class BallProcessing:
         Returns:
             A numpy.ndarray after erosion.
         """
-        return cv2.erode(src, kernel, anchor, iterations = (int) (iterations +0.5),
-                            borderType = border_type, borderValue = border_value)
+        return cv2.erode(src, kernel, anchor, iterations=(int)(iterations + 0.5),
+                         borderType=border_type, borderValue=border_value)
 
     @staticmethod
     def __find_contours(input, external_only):
@@ -172,5 +172,6 @@ class BallProcessing:
         else:
             mode = cv2.RETR_LIST
         method = cv2.CHAIN_APPROX_SIMPLE
-        im2, contours, hierarchy =cv2.findContours(input, mode=mode, method=method)
+        contours, hierarchy = cv2.findContours(
+            input, mode=mode, method=method)
         return contours

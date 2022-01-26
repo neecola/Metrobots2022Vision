@@ -2,19 +2,34 @@ import cv2
 import numpy
 import math
 from enum import Enum
-import blue_settings as blue_s
-import red_settings as red_s
-import tape_settings as tape_s
-
+from ball_processing import BallProcessing
+import tape_settings
+from general_settings import team
 
 if __name__ == "__main__":
-    while True:
-        gplr = GripPipelineRed()
-        video = cv2.VideoCapture(0)
-        redval, redimg = video.read()
+    
+    settings = BallProcessing(team)
 
-        contours = gplr.process(redimg) 
-        cv2.drawContours(redimg, contours, -1, 0xFF0000)
-        cv2.imshow("Source with contours", redimg)
+    while True:
+        
+
+        #capturing balls and getting the contours
+        video = cv2.VideoCapture(0)
+        _, video = video.read()
+        ball = settings.process(video)
+        
+        M = cv2.moments(ball)
+
+        cv2.imshow("Video", video)
+        cv2.imshow("Detected Ball", ball)
+
+        #finding center of the ball (just copy-pasted, don't know what it actually does)
+        #cX = int(M["m10"] / M["m00"])
+        #cY = int(M["m01"] / M["m00"])
+
+        #print(f'Coordinates of the center: ({cX},{cY})')
+
+
+        #cv2.imshow("Source with contours", image)
         #cv2.imshow("Contours", contours)
         cv2.waitKey(5)
