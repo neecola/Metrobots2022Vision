@@ -15,12 +15,13 @@ if __name__ == "__main__":
 
         #capturing balls and getting the contours
         video = cv2.VideoCapture(0)
-        _, video = video.read()
-        ball = settings.process(video)
+        ret, frame = video.read()
+        video2 = cv2.resize(frame, (640, 320))
+        ball = settings.process(frame)
         
         M = cv2.moments(ball)
 
-        cv2.imshow("Video", video)
+        cv2.imshow("Video", video2)
         cv2.imshow("Detected Ball", ball)
 
         #finding center of the ball (just copy-pasted, don't know what it actually does)
