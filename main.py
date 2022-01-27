@@ -4,13 +4,12 @@ import math
 from enum import Enum
 import datetime
 from ball_processing import BallProcessing
-import tape_settings
-from general_settings import team
+import general_settings as g_sets
 
 
 if __name__ == "__main__":
 
-    settings = BallProcessing(team)
+    settings = BallProcessing(g_sets.team)
 
     while True:
         # for timing the process
@@ -18,29 +17,26 @@ if __name__ == "__main__":
 
         # capturing balls and getting the contours
         video = cv2.VideoCapture(0)
-        
-        
-        _, video = video.read()
-
-        ball = settings.process(video)
-        
+        ret, frame = video.read()
+        frame = cv2.resize(
+            frame, (g_sets.frame_size_width, g_sets.frame_size_height))
+        ball = settings.process(frame)
 
         M = cv2.moments(ball)
 
-        #print(M)
-        #cv2.imshow("Video", video)
-        #cv2.imshow("Detected Ball", ball)
+        # finding center of the ball # g_sets.frame_size_height = 135
+        try:
+            cX = int(M['m10'] / M['m00']) - (g_sets.frame_size_width/2)
+            cY = abs(int(M['m01'] / M['m00']) -
+                     g_sets.frame_size_height) - (g_sets.frame_size_height / 2)
+            ctr_coords = (cX, cY)
+        except ZeroDivisionError:
+            ctr_coords = None
 
+        print(ctr_coords)
 
-        # finding center of the ball (just copy-pasted, don't know what it actually does)
-        cX = int(M['m10'] / M['m00'])
-        cY = int(M['m01'] / M['m00'])
-
-        print(f'Coordinates of the center: ({cX},{cY})')
-
-        #cv2.imshow("Source with contours", image)
-        #cv2.imshow("Contours", contours)
-
+        cv2.imshow("Live cam", frame)
+        cv2.imshow("Detected Ball", ball)
 
         # for timing the process
         #print(datetime.datetime.now() - begin_time)

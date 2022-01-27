@@ -33,7 +33,7 @@ class BallProcessing:
         # initialization of values for the image processing
         # (it shouldn't be necessary to modify these for tuning the camera)
         self.__blur_type = BlurType.Box_Blur
-        self.__blur_radius = 32.432432432432435
+        self.__blur_radius = 10
 
         self.blur_output = None
 
@@ -71,11 +71,15 @@ class BallProcessing:
         self.__blur_input = source0
         (self.blur_output) = self.__blur(
             self.__blur_input, self.__blur_type, self.__blur_radius)
+        
+        cv2.imshow("After blur", self.blur_output)
+
 
         # Step HSV_Threshold0:
         self.__hsv_threshold_input = self.blur_output
         (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input,
                                                            self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
+        cv2.imshow("After threshold", self.hsv_threshold_output)
 
         # Step CV_dilate0:
         self.__cv_dilate_src = self.hsv_threshold_output
