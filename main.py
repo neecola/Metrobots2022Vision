@@ -15,9 +15,9 @@ if __name__ == "__main__":
         # for timing the process #
         #begin_time = datetime.datetime.now()
 
-        # capturing balls and getting the contours #
+        # getting the video signal from the camera #
         video = cv2.VideoCapture(0)
-        ret, frame = video.read()
+        _, frame = video.read()
         frame = cv2.resize(
             frame, (g_sets.frame_size_width, g_sets.frame_size_height))
         
@@ -43,5 +43,6 @@ if __name__ == "__main__":
         #print(datetime.datetime.now() - begin_time)
 
         
+        #for displaying the cameras' content / turn on from general settings
         if g_sets.Calibration.is_on:
             g_sets.Calibration.display_screens()

@@ -70,7 +70,7 @@ class BallProcessing:
         #ignore if statements in this function, they are for
         #displaying the phases of the processing during calibration
         if g_sets.Calibration.is_on: 
-            Calibration.screens.update('Source', self.source0)
+            Calibration.screens.append(source0)
         
         
         # Step Blur0:
@@ -80,7 +80,7 @@ class BallProcessing:
         
         #for calibration
         if g_sets.Calibration.is_on: 
-            Calibration.screens.update('After blur', self.blur_output)
+            Calibration.screens.append(self.blur_output)
 
 
         # Step HSV_Threshold0:
@@ -88,7 +88,7 @@ class BallProcessing:
         (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input,
                                                            self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
         if g_sets.Calibration.is_on:
-            Calibration.screens.update('After thold', self.hsv_threshold_output)
+            Calibration.screens.append(self.hsv_threshold_output)
 
         # Step CV_dilate0:
         self.__cv_dilate_src = self.hsv_threshold_output
@@ -96,7 +96,7 @@ class BallProcessing:
                                                    self.__cv_dilate_anchor, self.__cv_dilate_iterations, self.__cv_dilate_bordertype, self.__cv_dilate_bordervalue)
 
         if g_sets.Calibration.is_on:
-            Calibration.screens.update('After dilate', self.cv_dilate_output)        
+            Calibration.screens.append(self.cv_dilate_output)        
         
         
         # Step CV_erode0:
@@ -105,7 +105,7 @@ class BallProcessing:
                                                  self.__cv_erode_anchor, self.__cv_erode_iterations, self.__cv_erode_bordertype, self.__cv_erode_bordervalue)
         
         if g_sets.Calibration.is_on:
-            Calibration.screens.update('After erode', self.cv_erode_output)
+            Calibration.screens.append(self.cv_erode_output)
         
         return self.cv_erode_output
 

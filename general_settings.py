@@ -38,13 +38,21 @@ class Tape:
 # CALIBRATION THINGS #
 class Calibration:
     is_on = True
-    screens = dict()
+    screens = list()
 
     @staticmethod
-    def display_screens(self):
-        final_image = list()
-        for screen in self.screens:
-            final_image = np.concatenate((final_image, screen), axis=1)
+    def display_screens():
+        
+        for i in range(len(Calibration.screens)):
+            try:
+                Calibration.screens[i] = cv2.cvtColor(Calibration.screens[i], cv2.COLOR_GRAY2BGR)
+            except:
+                continue
 
-        cv2.imshow('All screens', final_image)
+        final_image = np.hstack(tuple(screen for screen in Calibration.screens))
+        
+        cv2.imshow('Ball processing screens', final_image)
+        
+        
         cv2.waitKey(5)
+        Calibration.screens.clear()
