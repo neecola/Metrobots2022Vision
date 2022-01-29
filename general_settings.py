@@ -1,4 +1,3 @@
-from turtle import goto
 import cv2
 import numpy as np
 import math
@@ -30,7 +29,7 @@ class RedTeamBall:
 
 
 class Tape:
-    selfthreshold_hue = [58.273381294964025, 111.23938879456708]
+    threshold_hue = [58.273381294964025, 111.23938879456708]
     threshold_saturation = [206.38489208633095, 255.0]
     threshold_value = [52.74280575539568, 255.0]
 
@@ -38,21 +37,31 @@ class Tape:
 # CALIBRATION THINGS #
 class Calibration:
     is_on = True
-    screens = list()
+    ball_screens = list()
+    tape_screens = list()
+
 
     @staticmethod
     def display_screens():
         
-        for i in range(len(Calibration.screens)):
+        for i in range(len(Calibration.ball_screens)):
             try:
-                Calibration.screens[i] = cv2.cvtColor(Calibration.screens[i], cv2.COLOR_GRAY2BGR)
+                Calibration.ball_screens[i] = cv2.cvtColor(Calibration.ball_screens[i], cv2.COLOR_GRAY2BGR)
             except:
                 continue
+        
+        ball_line = np.hstack(tuple(screen for screen in Calibration.ball_screens))
 
-        final_image = np.hstack(tuple(screen for screen in Calibration.screens))
-        
-        cv2.imshow('Ball processing screens', final_image)
-        
+        for i in range(len(Calibration.tape_screens)):
+            try:
+                Calibration.tape_screens[i] = cv2.cvtColor(Calibration.tape_screens[i], cv2.COLOR_GRAY2BGR)
+            except:
+                continue
+        tape_line = np.hstack(tuple(screen for screen in Calibration.tape_screens))
+
+        cv2.imshow('Ball processing screens', ball_line)
+        cv2.imshow('Tape processing screens', tape_line)
         
         cv2.waitKey(5)
-        Calibration.screens.clear()
+        Calibration.ball_screens.clear()
+        Calibration.tape_screens.clear()
