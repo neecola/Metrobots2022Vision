@@ -2,8 +2,8 @@ import cv2
 import numpy
 import math
 from enum import Enum, auto
-import general_settings as settings
-from general_settings import Team
+import general_settings as g_sets
+from general_settings import Team, Calibration
 
 #created to fix the absence of this kind of enum used in the auto generated GRIP code
 class BlurType(Enum):
@@ -21,14 +21,14 @@ class BallProcessing:
         # imports the threshold values from ball_team_settings.py module
         # (needed for indentifying either blue or red balls)
         if team == Team.RED:
-            self.__hsv_threshold_hue = settings.RedTeamBall().threshold_hue
-            self.__hsv_threshold_saturation = settings.RedTeamBall().threshold_saturation
-            self.__hsv_threshold_value = settings.RedTeamBall().threshold_value
+            self.__hsv_threshold_hue = g_sets.RedTeamBall.threshold_hue
+            self.__hsv_threshold_saturation = g_sets.RedTeamBall.threshold_saturation
+            self.__hsv_threshold_value = g_sets.RedTeamBall.threshold_value
 
         elif team == Team.BLUE:
-            self.__hsv_threshold_hue = settings.BlueTeamBall().threshold_hue
-            self.__hsv_threshold_saturation = settings.BlueTeamBall().threshold_saturation
-            self.__hsv_threshold_value = settings.BlueTeamBall().threshold_value
+            self.__hsv_threshold_hue = g_sets.BlueTeamBall.threshold_hue
+            self.__hsv_threshold_saturation = g_sets.BlueTeamBall.threshold_saturation
+            self.__hsv_threshold_value = g_sets.BlueTeamBall.threshold_value
 
         # initialization of values for the image processing
         # (it shouldn't be necessary to modify these for tuning the camera)
@@ -66,30 +66,47 @@ class BallProcessing:
     # operates the ball processing and returns the final result
     # without modifying the argument
     def process(self, source0):
-
+        
+        #ignore if statements in this function, they are for
+        #displaying the phases of the processing during calibration
+        if g_sets.Calibration.is_on: 
+            Calibration.screens.update('Source', self.source0)
+        
+        
         # Step Blur0:
         self.__blur_input = source0
         (self.blur_output) = self.__blur(
             self.__blur_input, self.__blur_type, self.__blur_radius)
         
-        cv2.imshow("After blur", self.blur_output)
+        #for calibration
+        if g_sets.Calibration.is_on: 
+            Calibration.screens.update('After blur', self.blur_output)
 
 
         # Step HSV_Threshold0:
         self.__hsv_threshold_input = self.blur_output
         (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input,
                                                            self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
-        cv2.imshow("After threshold", self.hsv_threshold_output)
+        if g_sets.Calibration.is_on:
+            Calibration.screens.update('After thold', self.hsv_threshold_output)
 
         # Step CV_dilate0:
         self.__cv_dilate_src = self.hsv_threshold_output
         (self.cv_dilate_output) = self.__cv_dilate(self.__cv_dilate_src, self.__cv_dilate_kernel,
                                                    self.__cv_dilate_anchor, self.__cv_dilate_iterations, self.__cv_dilate_bordertype, self.__cv_dilate_bordervalue)
 
+        if g_sets.Calibration.is_on:
+            Calibration.screens.update('After dilate', self.cv_dilate_output)        
+        
+        
         # Step CV_erode0:
         self.__cv_erode_src = self.cv_dilate_output
         (self.cv_erode_output) = self.__cv_erode(self.__cv_erode_src, self.__cv_erode_kernel,
                                                  self.__cv_erode_anchor, self.__cv_erode_iterations, self.__cv_erode_bordertype, self.__cv_erode_bordervalue)
+        
+        if g_sets.Calibration.is_on:
+            Calibration.screens.update('After erode', self.cv_erode_output)
+        
         return self.cv_erode_output
 
         # Step Find_Contours0: (not used)

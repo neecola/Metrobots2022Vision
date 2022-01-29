@@ -2,7 +2,7 @@ import cv2
 import numpy
 import math
 from enum import Enum
-import general_settings as settings
+import general_settings as g_sets
 
 class TapeProcessing:
     
@@ -10,9 +10,9 @@ class TapeProcessing:
         """initializes all values to presets or None if need to be set
         """
 
-        self.__hsv_threshold_hue = settings.Tape().threshold_hue
-        self.__hsv_threshold_saturation = settings.Tape().threshold_saturation
-        self.__hsv_threshold_value = settings.Tape().threshold_value
+        self.__hsv_threshold_hue = g_sets.Tape.threshold_hue
+        self.__hsv_threshold_saturation = g_sets.Tape.threshold_saturation
+        self.__hsv_threshold_value = g_sets.Tape.threshold_value
 
         self.hsv_threshold_output = None
 

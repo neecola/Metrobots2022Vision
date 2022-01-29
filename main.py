@@ -12,19 +12,22 @@ if __name__ == "__main__":
     settings = BallProcessing(g_sets.team)
 
     while True:
-        # for timing the process
+        # for timing the process #
         #begin_time = datetime.datetime.now()
 
-        # capturing balls and getting the contours
+        # capturing balls and getting the contours #
         video = cv2.VideoCapture(0)
         ret, frame = video.read()
         frame = cv2.resize(
             frame, (g_sets.frame_size_width, g_sets.frame_size_height))
+        
+        
+        
         ball = settings.process(frame)
 
-        M = cv2.moments(ball)
 
-        # finding center of the ball # g_sets.frame_size_height = 135
+        # finding center of the ball #
+        M = cv2.moments(ball)
         try:
             cX = int(M['m10'] / M['m00']) - (g_sets.frame_size_width/2)
             cY = abs(int(M['m01'] / M['m00']) -
@@ -35,10 +38,10 @@ if __name__ == "__main__":
 
         print(ctr_coords)
 
-        cv2.imshow("Live cam", frame)
-        cv2.imshow("Detected Ball", ball)
 
-        # for timing the process
+        # for timing the process #
         #print(datetime.datetime.now() - begin_time)
 
-        cv2.waitKey(5)
+        
+        if g_sets.Calibration.is_on:
+            g_sets.Calibration.display_screens()
