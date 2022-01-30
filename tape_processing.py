@@ -46,8 +46,12 @@ class TapeProcessing:
         #ignore if statements in this function, they are for
         #displaying the phases of the processing during calibration
         
+        #used for displaying the contours
+        blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
+
+
         # Step HSV_Threshold0:
-        self.__hsv_twhreshold_input = source0
+        self.__hsv_threshold_input = source0
         (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input, self.__hsv_threshold_hue, self.__hsv_threshold_saturation, self.__hsv_threshold_value)
 
         if g_sets.Calibration.is_on:
@@ -59,21 +63,29 @@ class TapeProcessing:
         (self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
 
         blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
-        blank_image = cv2.drawContours(blank_image, self.find_contours_output, -1, (0, 255, 0))
+        image = cv2.drawContours(blank_image, self.find_contours_output, -1, (255, 255, 255))
         if g_sets.Calibration.is_on:
-            Calibration.tape_screens.append(blank_image)
+            Calibration.tape_screens.append(image)
 
 
         # Step Filter_Contours0:
         self.__filter_contours_contours = self.find_contours_output
         (self.filter_contours_output) = self.__filter_contours(self.__filter_contours_contours, self.__filter_contours_min_area, self.__filter_contours_min_perimeter, self.__filter_contours_min_width, self.__filter_contours_max_width, self.__filter_contours_min_height, self.__filter_contours_max_height, self.__filter_contours_solidity, self.__filter_contours_max_vertices, self.__filter_contours_min_vertices, self.__filter_contours_min_ratio, self.__filter_contours_max_ratio)
 
+        #step Find_largest_contour:
+        self.__find_largest_contour_input = self.filter_contours_output
+        (self.find_largest_contour_output) = self.__find_largest_contour(self.__find_largest_contour_input)
+        
         blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
-        blank_image = cv2.drawContours(blank_image, self.filter_contours_output, -1, (0, 255, 0))
+        
+        #displays filtered contours in white, largest contour in green
+        image = cv2.drawContours(blank_image, self.filter_contours_output, -1, (255, 255, 255))
+        image = cv2.drawContours(image, self.find_largest_contour_output, -1, (0, 255, 0))
         if g_sets.Calibration.is_on:
-            Calibration.tape_screens.append(blank_image)
+            Calibration.tape_screens.append(image)     
+        
 
-        return self.filter_contours_output
+        return self.find_largest_contour_output
 
     @staticmethod
     def __hsv_threshold(input, hue, sat, val):
@@ -103,7 +115,7 @@ class TapeProcessing:
         else:
             mode = cv2.RETR_LIST
         method = cv2.CHAIN_APPROX_SIMPLE
-        contours, hierarchy =cv2.findContours(input, mode=mode, method=method)
+        contours, _ =cv2.findContours(input, mode=mode, method=method)
         return contours
 
     @staticmethod
@@ -152,4 +164,16 @@ class TapeProcessing:
         return output
 
 
+    @staticmethod
+    def __find_largest_contour(contours):
+        # returns the biggest contour in the image 
 
+        if len(contours) == 0:
+            return contours
+            
+        largest = contours[0]
+        if len(contours) > 0:
+            for contour in contours:
+                if cv2.contourArea(contour) > cv2.contourArea(largest):
+                    largest = contour
+        return largest

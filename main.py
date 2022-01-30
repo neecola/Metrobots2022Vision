@@ -6,8 +6,7 @@ import datetime
 from ball_processing import BallProcessing
 import general_settings as g_sets
 from tape_processing import TapeProcessing
-
-
+    
 
 if __name__ == "__main__":
 
@@ -20,11 +19,13 @@ if __name__ == "__main__":
         # getting the video signal from the camera #
         video = cv2.VideoCapture(0)
         _, frame = video.read()
+        
+        # using picture as video signal for testing #
+        #frame = cv2.imread("2022VisionSampleImages/NearLaunchpad5ft4in.png")
+        
         frame = cv2.resize(
             frame, (g_sets.frame_size_width, g_sets.frame_size_height))
-        
-        
-        
+
         ball = settings.process(frame)
 
 
@@ -42,22 +43,15 @@ if __name__ == "__main__":
 
 
         # now tape #
-        tape = TapeProcessing().process(frame)
-        blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
-        
-        
+        tape = TapeProcessing().process(frame)       
 
         try:
-            M = cv2.moments(tape)
-            
-            tX = int(M['m10'] / M['m00']) - (g_sets.frame_size_width/2)
-            tY = abs(int(M['m01'] / M['m00']) -
-                     g_sets.frame_size_height) - (g_sets.frame_size_height / 2)
-            tape_coords = (tX, tY)
-        except:# ZeroDivisionError:
+            rect = cv2.minAreaRect(tape)
+            tape_coords, _, _ = rect
+        except :
             tape_coords = None
-
-        
+        print(tape_coords)
+        print(tape_coords)
         
         # for timing the process #
         #print(datetime.datetime.now() - begin_time)
