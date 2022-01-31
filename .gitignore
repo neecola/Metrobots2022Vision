@@ -1,5 +1,6 @@
 __pycache__
+2022VisionSampleImages
 *.DS_Store
 *.vscode
 *.ropeproject
-2022VisionSampleImages
+*.png
