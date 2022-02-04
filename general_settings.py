@@ -10,10 +10,14 @@ class Team(Enum):
 
 
 ## CHANGE THIS VALUE FOR CHOOSING TEAM ##
-team = Team.BLUE
+TEAM = Team.BLUE
 
-frame_size_width = 240  # px
-frame_size_height = 135  # px
+FRAME_SIZE_WIDTH = 240  # px
+FRAME_SIZE_HEIGHT = 135  # px
+
+ROBO_RIO_ADDRESS = ''
+
+
 
 
 class BlueTeamBall:

@@ -47,7 +47,7 @@ class TapeProcessing:
         #displaying the phases of the processing during calibration
         
         #used for displaying the contours
-        blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
+        blank_image = np.zeros([g_sets.FRAME_SIZE_HEIGHT, g_sets.FRAME_SIZE_WIDTH, 3])
 
 
         # Step HSV_Threshold0:
@@ -62,7 +62,7 @@ class TapeProcessing:
         self.__find_contours_input = self.hsv_threshold_output
         (self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
 
-        blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
+        blank_image = np.zeros([g_sets.FRAME_SIZE_HEIGHT, g_sets.FRAME_SIZE_WIDTH, 3])
         image = cv2.drawContours(blank_image, self.find_contours_output, -1, (255, 255, 255))
         if g_sets.Calibration.is_on:
             Calibration.tape_screens.append(image)
@@ -76,7 +76,7 @@ class TapeProcessing:
         self.__find_largest_contour_input = self.filter_contours_output
         (self.find_largest_contour_output) = self.__find_largest_contour(self.__find_largest_contour_input)
         
-        blank_image = np.zeros([g_sets.frame_size_height, g_sets.frame_size_width, 3])
+        blank_image = np.zeros([g_sets.FRAME_SIZE_HEIGHT, g_sets.FRAME_SIZE_WIDTH, 3])
         
         #displays filtered contours in white, largest contour in green
         image = cv2.drawContours(blank_image, self.filter_contours_output, -1, (255, 255, 255))
