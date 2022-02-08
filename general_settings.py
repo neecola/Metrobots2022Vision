@@ -12,14 +12,28 @@ class Team(Enum):
 ## CHANGE THIS VALUE FOR CHOOSING TEAM ##
 TEAM = Team.BLUE
 
+
+# Frame settings #
 FRAME_SIZE_WIDTH = 240  # px
 FRAME_SIZE_HEIGHT = 135  # px
 
-ROBO_RIO_ADDRESS = ''
 
-CAMERA_FOCAL_LENGTH = 1
+# NetworkTables #
+ROBO_RIO_ADDRESS = '10.33.24.49'
+
+
+# camera settings #
+# camera used: Microsoft Lifecam HD-3000 #
+CAMERA_FOCAL_LENGTH = 456 # px
+
+CAMERA_VIEW_ANGLE_HOR = 60
+CAMERA_HEIGTH_ON_GROUND = 0
 TAPE_CAMERA_ANGLE = math.radians(30)
+
+
+# dimensions of field parts #
 TAPE_ACTUAL_WIDTH = 0.127 #meters
+HUB_ACTUAL_HEIGHT = 2.64 #meters
 
 
 
@@ -70,6 +84,5 @@ class Calibration:
         cv2.imshow('Ball processing screens', ball_line)
         cv2.imshow('Tape processing screens', tape_line)
         
-        cv2.waitKey(5)
         Calibration.ball_screens.clear()
         Calibration.tape_screens.clear()
