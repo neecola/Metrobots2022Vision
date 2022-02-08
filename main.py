@@ -12,25 +12,21 @@ from networktables import NetworkTables
 if __name__ == "__main__":
 
     settings = BallProcessing(g_sets.TEAM)
+    video = cv2.VideoCapture(0)
+    video.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+    video.set(cv2.CAP_PROP_EXPOSURE, 0)
+    #assert video.set(cv2.CAP_PROP_EXPOSURE, 0) is not False, 'Error: Camera does not support exposure'      
 
     while True:
         # for timing the process #
         #begin_time = datetime.datetime.now()
 
-        # getting the video signal from the camera #
-        video = cv2.VideoCapture(0)
-        print(video.set(cv2.CAP_PROP_EXPOSURE,1))
-        
-        
-        
+        # gets frame and resizes it #
         _, frame = video.read()
-        
-        
-        # using picture as video signal for testing #
-        #frame = cv2.imread("2022VisionSampleImages/NearLaunchpad5ft4in.png")
-        
         frame = cv2.resize(
             frame, (g_sets.FRAME_SIZE_WIDTH, g_sets.FRAME_SIZE_HEIGHT))
+
+
 
         ball = settings.process(frame)
 
@@ -45,22 +41,31 @@ if __name__ == "__main__":
         except ZeroDivisionError:
             ball_coords = None
 
+        #ball_x, ball_y = ball_coords
         #print(ball_coords)
 
-        #ball_x, ball_y = ball_coords
+
+
 
         # now tape #
         tape = TapeProcessing().process(frame)       
 
         try:
             rect = cv2.minAreaRect(tape)
-            tape_coords, _, _ = rect
+            tape_coords, tape_dims, _ = rect
+            
+            
+            tape_width, _ = tape_dims
+            tape_dist_diag = g_sets.TAPE_ACTUAL_WIDTH * g_sets.CAMERA_FOCAL_LENGTH / tape_width
+            tape_dist_horz = math.cos(g_sets.TAPE_CAMERA_ANGLE) * tape_dist_diag
         except :
             tape_coords = None
         
+        #tape_x, tape_y = tape_coords
+        
+        
         #print(tape_coords)
         
-        #tape_x, tape_y = tape_coords
 
 
         NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
@@ -75,6 +80,7 @@ if __name__ == "__main__":
         # for timing the process #
         #print(datetime.datetime.now() - begin_time)
 
+        
         cv2.waitKey(5)
         #for displaying the cameras' content / turn on from general settings
         if g_sets.Calibration.is_on:
