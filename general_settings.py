@@ -84,5 +84,7 @@ class Calibration:
         cv2.imshow('Ball processing screens', ball_line)
         cv2.imshow('Tape processing screens', tape_line)
         
+        cv2.waitKey(5)
+        
         Calibration.ball_screens.clear()
         Calibration.tape_screens.clear()

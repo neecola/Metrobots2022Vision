@@ -76,11 +76,11 @@ if __name__ == "__main__":
             tape_angle = None
         
         
+        print(tape_angle)
 
-
-        NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
-        sd = NetworkTables.getTable('SmartDashboard')
-        sd.putNumber('hubAngle', tape_angle)
+        #NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
+        #sd = NetworkTables.getTable('SmartDashboard')
+        #sd.putNumber('hubAngle', tape_angle)
         
         
         #sd.putNumber('ball_x', ball_x)
@@ -92,7 +92,6 @@ if __name__ == "__main__":
         # for timing the process #
         #print(datetime.datetime.now() - begin_time)
 
-        
         #for displaying the cameras' content / turn on from general settings
         if g_sets.Calibration.is_on:
             g_sets.Calibration.display_screens()
