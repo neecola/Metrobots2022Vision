@@ -23,7 +23,9 @@ if __name__ == "__main__":
         #begin_time = datetime.datetime.now()
 
         # gets frame and resizes it #
-        _, frame = video.read()
+        #_, frame = video.read()
+        
+        frame = cv2.imread('2022VisionSampleImages/FarLaunchpad10ft10in.png')
         frame = cv2.resize(
             frame, (g_sets.FRAME_SIZE_WIDTH, g_sets.FRAME_SIZE_HEIGHT))
 
@@ -42,8 +44,7 @@ if __name__ == "__main__":
         except ZeroDivisionError:
             ball_coords = None
 
-        #ball_x, ball_y = ball_coords
-        #print(ball_coords)
+        
 
 
 
@@ -58,8 +59,9 @@ if __name__ == "__main__":
             
             # getting hub angle #
             tape_x, _ = tape_coords
+            print(tape_x)
             tape_x -= (g_sets.FRAME_SIZE_WIDTH/2) #SETS CENTER TO 0
-            tape_angle = tape_x * g_sets.CAMERA_VIEW_ANGLE_HOR / g_sets.FRAME_SIZE_WIDTH
+            
             
             
             
@@ -76,7 +78,9 @@ if __name__ == "__main__":
             tape_angle = None
         
         
-        print(tape_angle)
+        #print(tape_x)
+        #print(tape_dist_hz)
+
 
         #NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
         #sd = NetworkTables.getTable('SmartDashboard')
