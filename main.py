@@ -1,4 +1,4 @@
-from cmath import sqrt
+from xmlrpc.client import Server
 import cv2
 import numpy as np
 import math
@@ -8,7 +8,9 @@ from ball_processing import BallProcessing
 import general_settings as g_sets
 from tape_processing import TapeProcessing
 from networktables import NetworkTables
+import os
 
+os.system("v4l2-ctl -c exposure_auto=1")
 
 if __name__ == "__main__":
 
@@ -35,10 +37,10 @@ if __name__ == "__main__":
 
 
         # finding center of the ball #
-        m = cv2.moments(ball)
+        M = cv2.moments(ball)
         try:
-            cX = int(m['m10'] / m['m00']) - (g_sets.FRAME_SIZE_WIDTH/2)
-            cY = abs(int(m['m01'] / m['m00']) -
+            cX = int(M['m10'] / M['m00']) - (g_sets.FRAME_SIZE_WIDTH/2)
+            cY = abs(int(M['m01'] / M['m00']) -
                      g_sets.FRAME_SIZE_HEIGHT) - (g_sets.FRAME_SIZE_HEIGHT / 2)
             ball_coords = (cX, cY)
         except ZeroDivisionError:
@@ -68,15 +70,11 @@ if __name__ == "__main__":
             # getting hub distance #
             tape_width, _ = tape_dims
             tape_dist_diag = g_sets.TAPE_ACTUAL_WIDTH * g_sets.CAMERA_FOCAL_LENGTH / tape_width
-            
-            # hz distance with cos#
-            #tape_dist_hz = math.cos(g_sets.TAPE_CAMERA_ANGLE) * tape_dist_diag
-            
-            # hz distance with pythagorean theorem #
-            tape_dist_hz = sqrt(tape_dist_diag**2 - (g_sets.HUB_ACTUAL_HEIGHT - g_sets.CAMERA_HEIGTH_ON_GROUND)**2)
+            tape_dist_horz = math.cos(g_sets.TAPE_CAMERA_ANGLE) * tape_dist_diag
         except :
-            tape_angle = None
+            tape_coords = None
         
+        #tape_x, tape_y = tape_coords
         
         #print(tape_x)
         #print(tape_dist_hz)
@@ -86,7 +84,21 @@ if __name__ == "__main__":
         #sd = NetworkTables.getTable('SmartDashboard')
         #sd.putNumber('hubAngle', tape_angle)
         
+        #print(tape_coords)
         
+
+        # start networktables client
+        sd = NetworkTables.getTable('SmartDashboard')
+        NetworkTables.startClientTeam(3324)
+        NetworkTables.startClient(Server)
+        NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
+
+        # push videos to smartdashboard (ball and tape as well for debugging)
+        sd.putNumberArray("VideoFeed", video)
+        sd.putNumberArray("BallProcessing", ball)
+        sd.putNumberArray("TapeProcessing", tape)
+        sd.putNumber("CenterOfBall", M)
+
         #sd.putNumber('ball_x', ball_x)
         #sd.putNumber('ball_y', ball_y)
         #sd.putNumber('tape_x', tape_x)
@@ -96,6 +108,8 @@ if __name__ == "__main__":
         # for timing the process #
         #print(datetime.datetime.now() - begin_time)
 
+        
+        cv2.waitKey(5)
         #for displaying the cameras' content / turn on from general settings
         if g_sets.Calibration.is_on:
             g_sets.Calibration.display_screens()
