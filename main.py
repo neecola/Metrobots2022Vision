@@ -9,8 +9,8 @@ import general_settings as g_sets
 from tape_processing import TapeProcessing
 from networktables import NetworkTables
 import os
+from cscore import CameraServer
 
-os.system("v4l2-ctl -c exposure_auto=1")
 
 if __name__ == "__main__":
 
@@ -19,6 +19,9 @@ if __name__ == "__main__":
     video.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
     video.set(cv2.CAP_PROP_EXPOSURE, 0)
     #assert video.set(cv2.CAP_PROP_EXPOSURE, 0) is not False, 'Error: Camera does not support exposure'      
+
+    os.system("v4l2-ctl -c exposure_auto=1")
+    CameraServer.startAutomaticCapture()
 
     while True:
         # for timing the process #
@@ -103,6 +106,7 @@ if __name__ == "__main__":
         #sd.putNumber('ball_y', ball_y)
         #sd.putNumber('tape_x', tape_x)
         #sd.putNumber('tape_y', tape_y)
+
 
 
         # for timing the process #
