@@ -58,7 +58,7 @@ class Tape:
 
 # CALIBRATION THINGS #
 class Calibration:
-    is_on = True
+    is_on = False
     ball_screens = list()
     tape_screens = list()
 
@@ -66,13 +66,13 @@ class Calibration:
     @staticmethod
     def display_screens():
         
-        for i in range(len(Calibration.ball_screens)):
-            try:
-                Calibration.ball_screens[i] = cv2.cvtColor(Calibration.ball_screens[i], cv2.COLOR_GRAY2BGR)
-            except:
-                continue
+        # for i in range(len(Calibration.ball_screens)):
+        #     try:
+        #         Calibration.ball_screens[i] = cv2.cvtColor(Calibration.ball_screens[i], cv2.COLOR_GRAY2BGR)
+        #     except:
+        #         continue
         
-        ball_line = np.hstack(tuple(screen for screen in Calibration.ball_screens))
+        # ball_line = np.hstack(tuple(screen for screen in Calibration.ball_screens))
 
         for i in range(len(Calibration.tape_screens)):
             try:
@@ -81,10 +81,10 @@ class Calibration:
                 continue
         tape_line = np.hstack(tuple(screen for screen in Calibration.tape_screens))
 
-        cv2.imshow('Ball processing screens', ball_line)
+        # cv2.imshow('Ball processing screens', ball_line)
         cv2.imshow('Tape processing screens', tape_line)
         
         cv2.waitKey(5)
         
-        Calibration.ball_screens.clear()
+        # Calibration.ball_screens.clear()
         Calibration.tape_screens.clear()
