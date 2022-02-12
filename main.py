@@ -1,40 +1,249 @@
-from xmlrpc.client import Server
-import cv2
-import numpy as np
-import math
-from enum import Enum
-import datetime
-from ball_processing import BallProcessing
-import general_settings as g_sets
-from tape_processing import TapeProcessing
-from networktables import NetworkTables
+#!/usr/bin/env python3
+
+import json
+import time
+import sys
 import os
 
+from enum import Enum
+import numpy as np
+import math
+import datetime
 
+import cv2
+from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer
+from networktables import NetworkTablesInstance
+
+import general_settings as g_sets
+from tape_processing import TapeProcessing
+
+#   JSON format:
+#   {
+#       "team": <team number>,
+#       "ntmode": <"client" or "server", "client" if unspecified>
+#       "cameras": [
+#           {
+#               "name": <camera name>
+#               "path": <path, e.g. "/dev/video0">
+#               "pixel format": <"MJPEG", "YUYV", etc>   // optional
+#               "width": <video mode width>              // optional
+#               "height": <video mode height>            // optional
+#               "fps": <video mode fps>                  // optional
+#               "brightness": <percentage brightness>    // optional
+#               "white balance": <"auto", "hold", value> // optional
+#               "exposure": <"auto", "hold", value>      // optional
+#               "properties": [                          // optional
+#                   {
+#                       "name": <property name>
+#                       "value": <property value>
+#                   }
+#               ],
+#               "stream": {                              // optional
+#                   "properties": [
+#                       {
+#                           "name": <stream property name>
+#                           "value": <stream property value>
+#                       }
+#                   ]
+#               }
+#           }
+#       ]
+#       "switched cameras": [
+#           {
+#               "name": <virtual camera name>
+#               "key": <network table key used for selection>
+#               // if NT value is a string, it's treated as a name
+#               // if NT value is a double, it's treated as an integer index
+#           }
+#       ]
+#   }
+
+configFile = "/boot/frc.json"
+
+class CameraConfig: pass
+
+team = 3324
+server = False
+cameraConfigs = []
+switchedCameraConfigs = []
+cameras = []
+
+def parseError(str):
+    """Report parse error."""
+    print("config error in '" + configFile + "': " + str, file=sys.stderr)
+
+def readCameraConfig(config):
+    """Read single camera configuration."""
+    cam = CameraConfig()
+
+    # name
+    try:
+        cam.name = config["name"]
+    except KeyError:
+        parseError("could not read camera name")
+        return False
+
+    # path
+    try:
+        cam.path = config["path"]
+    except KeyError:
+        parseError("camera '{}': could not read path".format(cam.name))
+        return False
+
+    # stream properties
+    cam.streamConfig = config.get("stream")
+
+    cam.config = config
+
+    cameraConfigs.append(cam)
+    return True
+
+def readSwitchedCameraConfig(config):
+    """Read single switched camera configuration."""
+    cam = CameraConfig()
+
+    # name
+    try:
+        cam.name = config["name"]
+    except KeyError:
+        parseError("could not read switched camera name")
+        return False
+
+    # path
+    try:
+        cam.key = config["key"]
+    except KeyError:
+        parseError("switched camera '{}': could not read key".format(cam.name))
+        return False
+
+    switchedCameraConfigs.append(cam)
+    return True
+
+def readConfig():
+    """Read configuration file."""
+    global team
+    global server
+
+    # parse file
+    try:
+        with open(configFile, "rt", encoding="utf-8") as f:
+            j = json.load(f)
+    except OSError as err:
+        print("could not open '{}': {}".format(configFile, err), file=sys.stderr)
+        return False
+
+    # top level must be an object
+    if not isinstance(j, dict):
+        parseError("must be JSON object")
+        return False
+
+    # team number
+    try:
+        team = j["team"]
+    except KeyError:
+        parseError("could not read team number")
+        return False
+
+    # ntmode (optional)
+    if "ntmode" in j:
+        str = j["ntmode"]
+        if str.lower() == "client":
+            server = False
+        elif str.lower() == "server":
+            server = True
+        else:
+            parseError("could not understand ntmode value '{}'".format(str))
+
+    # cameras
+    try:
+        cameras = j["cameras"]
+    except KeyError:
+        parseError("could not read cameras")
+        return False
+    for camera in cameras:
+        if not readCameraConfig(camera):
+            return False
+
+    # switched cameras
+    if "switched cameras" in j:
+        for camera in j["switched cameras"]:
+            if not readSwitchedCameraConfig(camera):
+                return False
+
+    return True
+
+def startCamera(config):
+    """Start running the camera."""
+    print("Starting camera '{}' on {}".format(config.name, config.path))
+    inst = CameraServer.getInstance()
+    camera = UsbCamera(config.name, config.path)
+    server = inst.startAutomaticCapture(camera=camera, return_server=True)
+
+    camera.setConfigJson(json.dumps(config.config))
+    camera.setConnectionStrategy(VideoSource.ConnectionStrategy.kKeepOpen)
+
+    if config.streamConfig is not None:
+        server.setConfigJson(json.dumps(config.streamConfig))
+
+    return camera
+
+def startSwitchedCamera(config):
+    """Start running the switched camera."""
+    print("Starting switched camera '{}' on {}".format(config.name, config.key))
+    server = CameraServer.getInstance().addSwitchedCamera(config.name)
+
+    def listener(fromobj, key, value, isNew):
+        if isinstance(value, float):
+            i = int(value)
+            if i >= 0 and i < len(cameras):
+              server.setSource(cameras[i])
+        elif isinstance(value, str):
+            for i in range(len(cameraConfigs)):
+                if value == cameraConfigs[i].name:
+                    server.setSource(cameras[i])
+                    break
+
+    NetworkTablesInstance.getDefault().getEntry(config.key).addListener(
+        listener,
+        NetworkTablesInstance.NotifyFlags.IMMEDIATE |
+        NetworkTablesInstance.NotifyFlags.NEW |
+        NetworkTablesInstance.NotifyFlags.UPDATE)
+
+    return server
 
 if __name__ == "__main__":
+    if len(sys.argv) >= 2:
+        configFile = sys.argv[1]
 
-    #os.system("v4l2-ctl -c exposure_auto=1")
-    settings = BallProcessing(g_sets.TEAM)
-    video = cv2.VideoCapture(0)
-    video.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-    video.set(cv2.CAP_PROP_EXPOSURE, 0)
-    #assert video.set(cv2.CAP_PROP_EXPOSURE, 0) is not False, 'Error: Camera does not support exposure'      
+    # read configuration
+    if not readConfig():
+        sys.exit(1)
 
-    os.system("v4l2-ctl -c exposure_auto=1")
-    
+    # start NetworkTables
+    ntinst = NetworkTablesInstance.getDefault()
+    if server:
+        print("Setting up NetworkTables server")
+        ntinst.startServer()
+    else:
+        print("Setting up NetworkTables client for team {}".format(team))
+        ntinst.startClientTeam(team)
+        ntinst.startDSClient()
 
+    # start cameras
+    for config in cameraConfigs:
+        cameras.append(startCamera(config))
+
+    # start switched cameras
+    for config in switchedCameraConfigs:
+        startSwitchedCamera(config)
+
+    # loop forever
     while True:
-
-
-        # gets frame and resizes it #
-        #_, frame = video.read()
+        # grabs first camera's input #
+        _, frame = cameras[0].read()
         
-        frame = cv2.imread('2022VisionSampleImages/FarLaunchpad10ft10in.png')
         frame = cv2.resize(
             frame, (g_sets.FRAME_SIZE_WIDTH, g_sets.FRAME_SIZE_HEIGHT))
-
-
 
 
 
@@ -51,49 +260,8 @@ if __name__ == "__main__":
             print(tape_x)
             tape_x -= (g_sets.FRAME_SIZE_WIDTH/2) #SETS CENTER TO 0
             
-            
-            # getting hub distance (not needed hopegfully) #
-            #tape_width, _ = tape_dims
-            #tape_dist_diag = g_sets.TAPE_ACTUAL_WIDTH * g_sets.CAMERA_FOCAL_LENGTH / tape_width
-            #tape_dist_horz = math.cos(g_sets.TAPE_CAMERA_ANGLE) * tape_dist_diag
         except :
-            tape_coords = None
+            tape_x = 0
         
-        
-        
-        blank_image = np.zeros([g_sets.FRAME_SIZE_HEIGHT, g_sets.FRAME_SIZE_WIDTH, 3])
-        image = cv2.drawContours(blank_image, tape, -1, (255, 255, 255))
-        
-        cv2.imshow('just tape', image)
-        
-        
-        cv2.imshow('tape', image)
-        cv2.waitKey(5)
-
-        # start networktables client
-        # sd = NetworkTables.getTable('SmartDashboard')
-        # NetworkTables.startClientTeam(3324)
-        # NetworkTables.startClient(Server)
-        # NetworkTables.initialize(server=g_sets.ROBO_RIO_ADDRESS)
-
-        # # push videos to smartdashboard (ball and tape as well for debugging)
-        # sd.putNumberArray("VideoFeed", video)
-        # sd.putNumberArray("BallProcessing", ball)
-        # sd.putNumberArray("TapeProcessing", tape)
-        # sd.putNumber("CenterOfBall", M)
-
-        #sd.putNumber('ball_x', ball_x)
-        #sd.putNumber('ball_y', ball_y)
-        #sd.putNumber('tape_x', tape_x)
-        #sd.putNumber('tape_y', tape_y)
-
-
-
-        # for timing the process #
-        #print(datetime.datetime.now() - begin_time)
-
-        
-        cv2.waitKey(5)
-        #for displaying the cameras' content / turn on from general settings
-        if g_sets.Calibration.is_on:
-            g_sets.Calibration.display_screens()
+        sd = ntinst.getTable('SmartDashboard')
+        sd.putNumber('hub_angle', tape_x)
