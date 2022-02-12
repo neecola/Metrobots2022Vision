@@ -11,6 +11,7 @@ from networktables import NetworkTables
 import os
 
 
+
 if __name__ == "__main__":
 
     #os.system("v4l2-ctl -c exposure_auto=1")
@@ -19,6 +20,9 @@ if __name__ == "__main__":
     video.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
     video.set(cv2.CAP_PROP_EXPOSURE, 0)
     #assert video.set(cv2.CAP_PROP_EXPOSURE, 0) is not False, 'Error: Camera does not support exposure'      
+
+    os.system("v4l2-ctl -c exposure_auto=1")
+    
 
     while True:
 
@@ -83,6 +87,10 @@ if __name__ == "__main__":
         #sd.putNumber('tape_x', tape_x)
         #sd.putNumber('tape_y', tape_y)
 
+
+
+        # for timing the process #
+        #print(datetime.datetime.now() - begin_time)
 
         
         cv2.waitKey(5)
