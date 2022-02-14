@@ -11,52 +11,13 @@ import math
 import datetime
 
 import cv2
-from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer
+import cscore
+from cscore import CameraServer, VideoSource, UsbCamera, MjpegServer, CvSink
 from networktables import NetworkTablesInstance
 
 import general_settings as g_sets
 from tape_processing import TapeProcessing
 
-#   JSON format:
-#   {
-#       "team": <team number>,
-#       "ntmode": <"client" or "server", "client" if unspecified>
-#       "cameras": [
-#           {
-#               "name": <camera name>
-#               "path": <path, e.g. "/dev/video0">
-#               "pixel format": <"MJPEG", "YUYV", etc>   // optional
-#               "width": <video mode width>              // optional
-#               "height": <video mode height>            // optional
-#               "fps": <video mode fps>                  // optional
-#               "brightness": <percentage brightness>    // optional
-#               "white balance": <"auto", "hold", value> // optional
-#               "exposure": <"auto", "hold", value>      // optional
-#               "properties": [                          // optional
-#                   {
-#                       "name": <property name>
-#                       "value": <property value>
-#                   }
-#               ],
-#               "stream": {                              // optional
-#                   "properties": [
-#                       {
-#                           "name": <stream property name>
-#                           "value": <stream property value>
-#                       }
-#                   ]
-#               }
-#           }
-#       ]
-#       "switched cameras": [
-#           {
-#               "name": <virtual camera name>
-#               "key": <network table key used for selection>
-#               // if NT value is a string, it's treated as a name
-#               // if NT value is a double, it's treated as an integer index
-#           }
-#       ]
-#   }
 
 configFile = "/boot/frc.json"
 
@@ -237,14 +198,25 @@ if __name__ == "__main__":
     for config in switchedCameraConfigs:
         startSwitchedCamera(config)
 
+    # sets video input for opencv processing
+    inst = CameraServer.getInstance()
+    sink = inst.getVideo()
+    print(sink)
+    CameraServer.enableLogging()
+    time.sleep(.1)
+    
     # loop forever
     while True:
         # grabs first camera's input #
-        _, frame = cameras[0].read()
-        
+        image = np.zeros(shape=(0,0,0))
+
+        _, frame = sink.grabFrame(image)
+
         frame = cv2.resize(
             frame, (g_sets.FRAME_SIZE_WIDTH, g_sets.FRAME_SIZE_HEIGHT))
-
+        
+        #cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)        
+                
 
 
         # tape #
@@ -265,3 +237,4 @@ if __name__ == "__main__":
         
         sd = ntinst.getTable('SmartDashboard')
         sd.putNumber('hub_angle', tape_x)
+

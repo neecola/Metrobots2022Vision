@@ -51,9 +51,9 @@ class RedTeamBall:
 
 
 class Tape:
-    threshold_hue = [58.273381294964025, 111.23938879456708]
-    threshold_saturation = [206.38489208633095, 255.0]
-    threshold_value = [52.74280575539568, 255.0]
+    threshold_hue = [73, 91]
+    threshold_saturation = [177, 255]
+    threshold_value = [122, 255]
 
 
 # CALIBRATION THINGS #
