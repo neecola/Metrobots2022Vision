@@ -201,7 +201,6 @@ if __name__ == "__main__":
     # sets video input for opencv processing
     inst = CameraServer.getInstance()
     sink = inst.getVideo()
-    print(sink)
     CameraServer.enableLogging()
     time.sleep(.1)
     
@@ -234,7 +233,7 @@ if __name__ == "__main__":
             tape_angle = tape_x * g_sets.CAMERA_VIEW_ANGLE_HOR / g_sets.FRAME_SIZE_WIDTH
             
         except:
-            tape_angle= None
+            tape_angle= 3324
         
         sd = ntinst.getTable('SmartDashboard')
         sd.putNumber('Angle of hub', tape_angle)
