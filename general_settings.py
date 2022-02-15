@@ -26,12 +26,12 @@ ROBO_RIO_ADDRESS = '10.33.24.49'
 # camera used: Microsoft Lifecam HD-3000 #
 CAMERA_FOCAL_LENGTH = 456 # px
 
-CAMERA_VIEW_ANGLE_HOR = 52.8
+CAMERA_VIEW_ANGLE_HOR = 60
 CAMERA_HEIGTH_ON_GROUND = 0.794
-TAPE_CAMERA_ANGLE = math.radians(30)
+TAPE_CAMERA_ANGLE_ON_GROUND = math.radians(52.8)
 
 
-# dimensions of field parts #
+# dimensions of field parts 
 TAPE_ACTUAL_WIDTH = 0.127 #meters
 HUB_ACTUAL_HEIGHT = 2.64 #meters
 
