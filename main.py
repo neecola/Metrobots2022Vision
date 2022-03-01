@@ -239,4 +239,5 @@ if __name__ == "__main__":
         sd = ntinst.getTable('SmartDashboard')
         sd.putNumber('Angle of hub', tape_angle)
         sd.putNumber('Height of hub', tape_y)
+        sd.putNumber('Hub Pixel Offset', tape_x)
 
