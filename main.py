@@ -227,14 +227,16 @@ if __name__ == "__main__":
             
             
             # getting hub angle #
-            tape_x, _ = tape_coords
+            tape_x, tape_y = tape_coords
 
             tape_x -= (g_sets.FRAME_SIZE_WIDTH/2) #SETS CENTER TO 0
             tape_angle = tape_x * g_sets.CAMERA_VIEW_ANGLE_HOR / g_sets.FRAME_SIZE_WIDTH
             
         except:
             tape_angle= 3324
+            tape_y = 3324
         
         sd = ntinst.getTable('SmartDashboard')
         sd.putNumber('Angle of hub', tape_angle)
+        sd.putNumber('Height of hub', tape_y)
 
